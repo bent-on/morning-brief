@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
+<script>
+// Token comes from the link fragment (#t=...), never sent to GitHub; remembered for the home-screen icon.
+(function(){
+  var m=/(?:^#|&)t=([A-Za-z0-9_-]{32,128})/.exec(location.hash||""), t=m?m[1]:null;
+  try{ if(t) localStorage.setItem("mb_token",t); else t=localStorage.getItem("mb_token"); }catch(e){}
+  if(t){ window.BRIEF_API='https://piralvczydwzouvovrrd.supabase.co/functions/v1/morning-brief/'+t; if(!m) try{history.replaceState(null,"",location.pathname+location.search+"#t="+t);}catch(e){} }
+  else window.BRIEF_NO_TOKEN=true;
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09090b">
+<meta name="robots" content="noindex">
+<title>Morning Brief</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* shadcn/ui zinc dark tokens, hand-vendored (no build step) */
+:root{
+  --background:#09090b;--foreground:#fafafa;--card:#09090b;--card-2:#18181b;
+  --muted:#27272a;--muted-foreground:#a1a1aa;--border:#27272a;--input:#27272a;--ring:#d4d4d8;
+  --primary:#fafafa;--primary-foreground:#18181b;--secondary:#27272a;--secondary-foreground:#fafafa;
+  --accent:#27272a;--destructive:#f87171;--success:#4ade80;--radius:.75rem;
+  --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;border:0 solid var(--border)}
+html,body{margin:0;background:var(--background);color:var(--foreground);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"cv11","ss01"}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;background:none}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:6px}
+.container{max-width:640px;margin:0 auto;padding:20px 16px calc(32px + env(safe-area-inset-bottom))}
+/* typography */
+.h1{font-size:24px;line-height:1.2;font-weight:600;letter-spacing:-.02em;margin:0}
+.h2{font-size:15px;font-weight:600;letter-spacing:-.01em;margin:0}
+.lead{color:var(--muted-foreground);font-size:14px;margin:0}
+.muted{color:var(--muted-foreground)}
+.xs{font-size:12px}
+/* layout pieces */
+.sep{height:1px;background:var(--border);margin:24px 0}
+.section{margin-top:28px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.card-pad{padding:16px}
+.card-title{font-size:15px;font-weight:600;line-height:1.35;margin:0 0 4px}
+.card-desc{color:var(--muted-foreground);margin:0}
+.row{display:flex;align-items:center;gap:8px}
+.grow{flex:1;min-width:0}
+/* badge */
+.badge{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border:1px solid var(--border);border-radius:9999px;font-size:11.5px;font-weight:500;color:var(--muted-foreground);white-space:nowrap;background:transparent}
+.badge.secondary{background:var(--secondary);color:var(--secondary-foreground);border-color:transparent}
+.badge.warn{color:#fca5a5;border-color:#3f1d1d}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:#52525b}
+.badge.ok .dot{background:var(--success)}
+.src{width:13px;height:13px;flex:0 0 13px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border-radius:calc(var(--radius) - 4px);font-size:13.5px;font-weight:500;white-space:nowrap;transition:background .15s,opacity .15s,border-color .15s}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.btn-primary:hover{background:#e4e4e7}
+.btn-outline{border:1px solid var(--input);background:var(--background)}
+.btn-outline:hover{background:var(--accent)}
+.btn-outline.on{background:var(--secondary);border-color:#52525b}
+.btn-ghost{height:28px;padding:0 8px;font-size:12px;color:var(--muted-foreground)}
+.btn-ghost:hover{background:var(--accent);color:var(--foreground)}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px}
+/* avatar */
+.avatar{width:28px;height:28px;border-radius:9999px;background:var(--muted);color:var(--foreground);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 28px;border:1px solid var(--border)}
+/* alert / status */
+.status{font-size:12.5px;color:var(--muted-foreground);min-height:0}
+.status:not(:empty){margin-top:10px}
+.status.ok{color:var(--foreground)}
+.status.err{color:var(--destructive)}
+/* hero */
+.hero{overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);aspect-ratio:16/9;background:var(--card-2)}
+.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.caption{margin-top:8px;font-size:11.5px;line-height:1.45;color:#71717a}
+.caption b{color:var(--muted-foreground);font-weight:500}
+/* todos */
+.list{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.item{padding:12px 14px;border-top:1px solid var(--border)}
+.item:first-child{border-top:0}
+.todo{display:flex;gap:12px;align-items:flex-start}
+.checkbox{width:16px;height:16px;margin-top:2px;flex:0 0 16px;border:1px solid #71717a;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.checkbox svg{width:11px;opacity:0}
+.todo.done .checkbox{background:var(--primary);border-color:var(--primary)}
+.todo.done .checkbox svg{opacity:1}
+.todo .t{font-weight:500}
+.todo.done .t{text-decoration:line-through;color:var(--muted-foreground)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+/* follow-ups */
+.fu+.fu{margin-top:12px}
+.fu-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.fu-head .name{font-size:13px;font-weight:500}
+.custom{display:none;margin-top:10px;gap:8px}
+.custom.show{display:flex}
+.textarea{flex:1;min-height:60px;border:1px solid var(--input);border-radius:calc(var(--radius) - 4px);background:transparent;color:var(--foreground);font:13.5px/1.45 var(--sans);padding:8px 10px;resize:vertical}
+.textarea::placeholder{color:#71717a}
+.draft{margin-top:14px;border:1px solid var(--border);background:var(--card-2);border-radius:calc(var(--radius) - 2px)}
+.draft-head{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 6px 12px;border-bottom:1px solid var(--border)}
+.draft-head span{font:500 11px var(--mono);color:var(--muted-foreground);letter-spacing:.02em}
+.draft pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;font:12.5px/1.6 var(--mono);color:var(--foreground)}
+.draft.empty pre{color:#71717a}
+/* updates */
+.up-title{font-weight:500;margin:6px 0 2px}
+/* timeline */
+.tl{position:relative}
+.ev{border-top:1px solid var(--border)}
+.ev:first-child{border-top:0}
+.ev summary{list-style:none;display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:start;padding:12px 14px;cursor:pointer}
+.ev summary::-webkit-details-marker{display:none}
+.ev .time{font:500 12.5px var(--mono);color:var(--muted-foreground);padding-top:1px}
+.ev .time small{display:block;font:500 10.5px var(--sans);text-transform:uppercase;letter-spacing:.05em;color:#71717a}
+.ev .title{font-weight:500}
+.ev .chev{width:16px;height:16px;color:var(--muted-foreground);transition:transform .2s;margin-top:2px}
+.ev[open] .chev{transform:rotate(180deg)}
+.ev[open] summary{background:var(--card-2)}
+.ev .body{padding:0 14px 14px 78px;background:var(--card-2)}
+.ev .body p{margin:0 0 10px;color:var(--muted-foreground)}
+.tl>.day-sep:first-child{border-top:0}
+.day-sep{padding:8px 14px;font-size:11.5px;font-weight:500;color:var(--muted-foreground);background:var(--background);border-top:1px solid var(--border)}
+.sample{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;font-size:12.5px;color:var(--muted-foreground)}
+footer{margin-top:32px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:#71717a}
+/* item menu (shadcn dropdown-menu style) */
+.menu-wrap{position:relative;flex:0 0 auto}
+.icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted-foreground);padding:0}
+.icon-btn:hover,.icon-btn[aria-expanded=true]{background:var(--accent);color:var(--foreground)}
+.menu{position:fixed;left:0;top:0;z-index:1000;max-height:calc(100vh - 16px);overflow:auto;min-width:200px;padding:4px;background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
+.menu.open{display:block}
+.menu .label{padding:6px 8px 4px;font-size:11.5px;font-weight:500;color:var(--muted-foreground)}
+.menu button.mi{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border-radius:4px;font-size:13px;text-align:left}
+.menu button.mi:hover{background:var(--accent)}
+.menu button.mi small{color:var(--muted-foreground);font-size:11.5px}
+.menu .msep{height:1px;background:var(--border);margin:4px -4px}
+.menu .pick{display:flex;gap:6px;padding:4px 8px 6px}
+.menu input[type=date]{flex:1;min-width:0;height:30px;border:1px solid var(--input);border-radius:6px;background:transparent;color:var(--foreground);font:12.5px var(--sans);padding:0 6px;color-scheme:dark}
+.menu .mi.danger{color:var(--destructive)}
+.hidden-bar{margin-top:8px;display:flex;justify-content:flex-end}
+.hidden-list{margin-top:8px;display:none}
+.hidden-list.show{display:block}
+.hidden-list .item{display:flex;align-items:center;gap:10px;color:var(--muted-foreground)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:50;display:none;align-items:center;gap:12px;background:var(--card-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 10px 10px 14px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100vw - 32px)}
+.toast.show{display:flex}
+.loading{padding:80px 0;text-align:center;color:var(--muted-foreground)}
+</style>
+</head>
+<body>
+<main class="container" id="app"><div class="loading">Loading your brief…</div></main>
+<div class="toast" id="toast" role="status"><span id="toast-msg"></span><button class="btn btn-outline btn-sm" id="toast-undo">Undo</button></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="i-slack" viewBox="0 0 24 24"><path fill="#E01E5A" d="M5.04 15.17a2.52 2.52 0 1 1-2.52-2.52h2.52v2.52zm1.27 0a2.52 2.52 0 0 1 5.04 0v6.31a2.52 2.52 0 1 1-5.04 0v-6.31z"/><path fill="#36C5F0" d="M8.83 5.04a2.52 2.52 0 1 1 2.52-2.52v2.52H8.83zm0 1.27a2.52 2.52 0 0 1 0 5.04H2.52a2.52 2.52 0 0 1 0-5.04h6.31z"/><path fill="#2EB67D" d="M18.96 8.83a2.52 2.52 0 1 1 2.52 2.52h-2.52V8.83zm-1.27 0a2.52 2.52 0 0 1-5.04 0V2.52a2.52 2.52 0 1 1 5.04 0v6.31z"/><path fill="#ECB22E" d="M15.17 18.96a2.52 2.52 0 1 1-2.52 2.52v-2.52h2.52zm0-1.27a2.52 2.52 0 0 1 0-5.04h6.31a2.52 2.52 0 0 1 0 5.04h-6.31z"/></symbol>
+  <symbol id="i-gmail" viewBox="0 0 24 24"><path fill="#4285F4" d="M1.6 20h3.8v-9.2L0 6.7v11.7C0 19.3.7 20 1.6 20z"/><path fill="#34A853" d="M18.6 20h3.8c.9 0 1.6-.7 1.6-1.6V6.7l-5.4 4.1z"/><path fill="#FBBC04" d="M18.6 3.8v7l5.4-4.1V4.6c0-2-2.3-3.1-3.8-1.9z"/><path fill="#EA4335" d="M5.4 10.8v-7L12 8.7l6.6-4.9v7L12 15.7z"/><path fill="#C5221F" d="M0 4.6v2.1l5.4 4.1v-7L3.8 2.7C2.3 1.5 0 2.6 0 4.6z"/></symbol>
+  <symbol id="i-gcal" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#fff"/><path fill="#4285F4" d="M2 6V5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1z"/><text x="12" y="18.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#1a73e8">31</text></symbol>
+  <symbol id="i-clickup" viewBox="0 0 24 24"><path fill="#7B68EE" d="M3.5 17.3l3.1-2.4c1.6 2.1 3.4 3.1 5.4 3.1s3.7-1 5.3-3l3.2 2.3C18.1 20.4 15.3 22 12 22s-6.1-1.6-8.5-4.7z"/><path fill="#FD71AF" d="M12 7.6l-5.6 4.8-2.6-3L12 2.4l8.2 7-2.6 3z"/></symbol>
+  <symbol id="i-notes" viewBox="0 0 24 24"><rect x="3" y="2" width="18" height="20" rx="4" fill="#fff"/><path d="M3 6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2H3z" fill="#FFCC00"/><path stroke="#c8c8c8" stroke-width="1.2" d="M6 12h12M6 15.5h12M6 19h8"/></symbol>
+  <symbol id="dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+ </defs>
+</svg>
+<script>
+const API=(window.BRIEF_API||"").replace(/\/$/,""); // "" on the box; set by the Supabase function
+(function(){
+const DIRS=[["yes_warmly","Yes, Warmly"],["decline_politely","Decline Politely"],["more_time","Ask for More Time"],["push_to_call","Push to a Call"],["custom","Custom"]];
+const SRC={slack:"Slack",gmail:"Gmail",gcal:"Calendar",clickup:"ClickUp",notes:"Notes"};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl=u=>/^https:\/\//i.test(u||"")?u:"#";
+const svg=(id,cls,st)=>`<svg class="${cls||""}" ${st?`style="${st}"`:""} aria-hidden="true"><use href="#${id}"/></svg>`;
+const ic=s=>SRC[s]?`<svg class="src" role="img" aria-label="${SRC[s]}"><use href="#i-${s}"/></svg>`:"";
+const srcBadge=(s,url)=>{if(!SRC[s])return"";const inner=`${ic(s)}${SRC[s]}`;return url?`<a class="badge" href="${esc(safeUrl(url))}" target="_blank" rel="noopener">${inner}</a>`:`<span class="badge">${inner}</span>`;};
+const section=(title,aside,inner)=>`<section class="section"><div class="section-head"><h2 class="h2">${title}</h2>${aside?`<span class="muted xs">${aside}</span>`:""}</div>${inner}</section>`;
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.toLocaleDateString("en-CA",{timeZone:"America/Vancouver"});
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d);};
+const fmtDay=s=>new Date(s+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+const menu=it=>it.match_key?`<div class="menu-wrap"><button class="icon-btn" data-menu aria-haspopup="menu" aria-expanded="false" aria-label="More options">${svg("dots","","width:16px;height:16px")}</button>
+  <div class="menu" role="menu" data-id="${esc(it.item_id)}" data-key="${esc(it.match_key)}">
+   <div class="label">Snooze</div>
+   <button class="mi" data-snooze="${addDays(1)}">Tomorrow <small>${fmtDay(addDays(1))}</small></button>
+   <button class="mi" data-snooze="${addDays(7)}">Next Week <small>${fmtDay(addDays(7))}</small></button>
+   <div class="label">Pick a Date</div><div class="pick"><input type="date" min="${addDays(1)}" max="${addDays(365)}" aria-label="Pick a date"><button class="btn btn-outline btn-sm" data-snooze-pick style="height:30px">Snooze</button></div>
+   <div class="msep"></div>
+   <button class="mi danger" data-hide>Not for the Brief</button></div></div>`:"";
+const hiddenBlock=(b,sec)=>{const f=(b.filtered||{})[sec]||[];if(!f.length)return"";
+  return `<div class="hidden-bar"><button class="btn btn-ghost" data-toggle-hidden="${sec}">${f.length} Hidden · Show</button></div>
+  <div class="hidden-list list" id="hidden-${sec}">${f.map(it=>`<div class="item"><span class="grow">${esc(it.title)}<br><span class="xs">${it._filter.mode==="snooze"?"Snoozed until "+esc(fmtDay(it._filter.until)):"Not for the Brief"}</span></span>
+  <button class="btn btn-outline btn-sm" data-unhide="${esc(it.match_key)}">Unhide</button></div>`).join("")}</div>`;};
+
+async function act(body,statusEl,btn){
+  statusEl.className="status";statusEl.textContent="Sending…";if(btn)btn.disabled=true;
+  try{
+    const r=await fetch(API+"/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){statusEl.className="status ok";statusEl.textContent=j.message||"On it — draft coming to chat";}
+    else if(r.status===503){statusEl.className="status err";statusEl.textContent="Not wired up yet — buttons go live once the bot connects.";}
+    else{statusEl.className="status err";statusEl.textContent=j.error||"Something went wrong, try again.";}
+  }catch(e){statusEl.className="status err";statusEl.textContent="Couldn't reach the brief server.";}
+  finally{if(btn)setTimeout(()=>btn.disabled=false,1500);}
+}
+
+function render(b){
+  const d=new Date(b.date+"T12:00:00");
+  const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  const gen=b.generated_at?new Date(b.generated_at):new Date();
+  const timeStr=gen.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/Vancouver"})+" PT";
+  const doneKey="brief-todos-"+b.date, done=JSON.parse(localStorage.getItem(doneKey)||"{}");
+  let h="";
+  if(b.is_sample)h+=`<div class="sample">Example data · ${esc(b.sample_note||"sample content, first real brief tomorrow 7am")}</div>`;
+  h+=`<header><h1 class="h1">The ${esc(b.weekday)} Brief</h1><p class="lead xs" style="margin-top:4px">${esc(dateStr)} · ${esc(timeStr)}</p></header>
+     <figure style="margin:16px 0 0"><div class="hero"><img src="${esc(b.hero.image)}" alt="${esc(b.hero.caption)}"></div>
+     <figcaption class="caption"><b>${esc(b.hero.caption)}</b> · ${esc(b.hero.credit)}</figcaption></figure>
+     <p style="margin:16px 0 0;font-size:15px;line-height:1.55">${esc(b.mood)}</p>`;
+  const p=b.push;
+  if(p)h+=section("Push Your Work Forward","",`<div class="card card-pad">
+     <div class="row" style="margin-bottom:10px">${srcBadge(p.source||"clickup",p.source_url)}<span class="badge secondary">Today's One Thing</span></div>
+     <h3 class="card-title">${esc(p.title)}</h3><p class="card-desc">${esc(p.body)}</p>
+     <div style="margin-top:14px"><button class="btn btn-primary" data-push="${esc(p.item_id)}">Let’s Do It ${svg("arrow","","width:15px;height:15px")}</button></div>
+     <div class="status" id="st-${esc(p.item_id)}"></div></div>`);
+  if(b.todos?.length||b.filtered?.todos?.length){const left=b.todos.filter(t=>!done[t.item_id]).length;
+    h+=section("Top To-Dos",`<span id="todo-count">${left}</span> of ${b.todos.length} left`,`<div class="list">${b.todos.map(t=>`<div class="item todo ${done[t.item_id]?"done":""}" data-id="${esc(t.item_id)}">
+     <button class="checkbox" role="checkbox" aria-checked="${!!done[t.item_id]}" aria-label="Mark done"><svg viewBox="0 0 14 10"><path d="M1 5l4 4 8-8" stroke="#18181b" stroke-width="2" fill="none"/></svg></button>
+     <div class="grow"><div class="t">${esc(t.title)}</div><div class="meta">${srcBadge(t.source,t.source_url)}${t.due?`<span class="badge ${/overdue/i.test(t.due)?"warn":""}">${esc(t.due)}</span>`:""}</div></div>${menu(t)}</div>`).join("")}</div>${hiddenBlock(b,"todos")}`);}
+  if(b.followups?.length||b.filtered?.followups?.length)h+=section("Follow-Ups",`${b.followups.length} waiting on you`,b.followups.map(f=>`<div class="card card-pad fu" data-id="${esc(f.item_id)}">
+     <div class="fu-head"><span class="avatar">${esc(f.avatar?.initials||"?")}</span><div class="grow"><div class="name">${esc(f.from||"")}</div></div>${srcBadge(f.source,f.source_url)}${menu(f)}</div>
+     <h3 class="card-title">${esc(f.title)}</h3><p class="card-desc">${esc(f.body)}</p>
+     <div class="btn-row" style="margin-top:14px">${DIRS.map(([k,l])=>`<button class="btn btn-outline btn-sm dir" data-dir="${k}">${l}</button>`).join("")}</div>
+     <div class="custom"><textarea class="textarea" maxlength="500" placeholder="What should it say? e.g. yes, but only after 3pm"></textarea><button class="btn btn-primary btn-sm" data-send>Draft It</button></div>
+     <div class="status"></div>
+     <div class="draft ${f.draft?"":"empty"}"><div class="draft-head"><span>draft · ${esc(f.kind||"")}</span>${f.draft?`<button class="btn btn-ghost copy">${svg("copy","","width:13px;height:13px")}Copy</button>`:""}</div>
+     <pre>${f.draft?esc(f.draft):"Pick a direction. The draft lands here and in chat; nothing is sent for you."}</pre></div></div>`).join("")+hiddenBlock(b,"followups"));
+  if(b.updates?.length||b.filtered?.updates?.length)h+=section("New Updates","",`<div class="list">${b.updates.map((u,i)=>`<div class="item">
+     <div class="row"><span class="muted xs" style="font-family:var(--mono)">${pad(i+1)}</span><span class="badge secondary">${esc(u.category)}</span>${srcBadge(u.source,u.source_url)}<span class="grow"></span>${menu(u)}</div>
+     <div class="up-title">${esc(u.title)}</div><div class="muted">${esc(u.body)}</div></div>`).join("")}</div>${hiddenBlock(b,"updates")}`);
+  if(b.day?.length||b.filtered?.day?.length){let last=null,rows="";
+    b.day.forEach((e,i)=>{const lab=e.day_label||"Today";
+      if(lab!==last)rows+=`<div class="day-sep">${esc(lab==="Today"?"Today":"Tomorrow")}</div>`;last=lab;
+      rows+=`<details class="ev" ${i===0?"open":""}><summary><span class="time">${esc(e.time)}</span><span><div class="title">${esc(e.title)}</div><div class="muted xs">${esc(e.time)}${e.end?"–"+esc(e.end):""}</div></span><span class="row" style="gap:2px">${menu(e)}${svg("chev","chev")}</span></summary>
+       <div class="body"><p>${esc(e.prep||"Nothing to prep.")}</p><button class="btn btn-outline btn-sm" data-prep="${esc(e.item_id)}">Prep Me</button><div class="status"></div></div></details>`;});
+    h+=section("Your Day",`${b.day.length} events`,`${rows?`<div class="list tl">${rows}</div>`:""}${hiddenBlock(b,"day")}`);}
+  if(b.sources_status?.length)h+=section("Sources","",`<div class="btn-row">${b.sources_status.map(s=>`<span class="badge ${s.status==="connected"?"ok":""}" title="${esc(s.note||"")}"><span class="dot"></span>${ic(s.source)}${esc(SRC[s.source]||s.source)}${s.status!=="connected"?` · ${esc(String(s.status).replace("_"," "))}`:""}</span>`).join("")}</div>`);
+  h+=`<footer>Made for you by Morning Brief using your Slack, Gmail, ClickUp, Calendar and Notes</footer>`;
+  const app=document.getElementById("app");app.innerHTML=h;
+}
+let B=null, lastUndo=null, toastTimer=null;
+const app=document.getElementById("app");
+const load=()=>fetch(API+"/api/brief",{cache:"no-store"}).then(r=>r.json()).then(b=>{B=b;render(b);});
+async function setFilter(body){
+  const r=await fetch(API+"/api/filter",{method:body.mode==="clear"?"DELETE":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"failed");return j;
+}
+function toast(msg,undo){const t=document.getElementById("toast");document.getElementById("toast-msg").textContent=msg;lastUndo=undo;
+  document.getElementById("toast-undo").style.display=undo?"":"none";t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),6000);}
+document.getElementById("toast-undo").addEventListener("click",async()=>{if(!lastUndo)return;const k=lastUndo;lastUndo=null;
+  try{await setFilter({mode:"clear",match_key:k});await load();toast("Restored",null);}catch(e){toast("Couldn't undo: "+e.message,null);}});
+// Menus render in a fixed layer on <body> (portal) so cards/lists with overflow:hidden never clip them.
+let openMenu=null;
+function closeMenus(){
+  if(!openMenu)return;const {m,btn}=openMenu;openMenu=null;
+  m.classList.remove("open");m.style.visibility="";
+  btn.setAttribute("aria-expanded","false");
+  if(btn.isConnected)btn.parentElement.appendChild(m);else m.remove();
+}
+function positionMenu(m,btn){
+  const r=btn.getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=window.innerHeight,g=8;
+  const w=m.offsetWidth,h=m.offsetHeight;
+  let top=r.bottom+4;
+  if(top+h>vh-g){const up=r.top-4-h;top=up>=g?up:Math.max(g,vh-g-h);}   // flip up, else clamp
+  let left=r.right-w;left=Math.min(Math.max(g,left),vw-g-w);               // clamp horizontally
+  m.style.top=Math.round(top)+"px";m.style.left=Math.round(left)+"px";
+}
+function showMenu(btn){
+  const m=btn._menu||(btn._menu=btn.nextElementSibling);
+  closeMenus();document.body.appendChild(m);m._btn=btn;
+  m.style.visibility="hidden";m.classList.add("open");positionMenu(m,btn);m.style.visibility="";
+  btn.setAttribute("aria-expanded","true");openMenu={m,btn};
+  (m.querySelector("button.mi")||m).focus({preventScroll:true});
+}
+document.addEventListener("click",ev=>{
+  const m=ev.target.closest(".menu");
+  if(m){handleMenuClick(ev,m);return;}
+  if(!ev.target.closest("[data-menu]"))closeMenus();
+});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&openMenu){const b=openMenu.btn;closeMenus();b.focus();}});
+window.addEventListener("scroll",ev=>{if(!openMenu)return;const m=openMenu.m,a=document.activeElement;
+  if(m.contains(ev.target)||(a&&a.type==="date"&&m.contains(a)))return;closeMenus();},{passive:true,capture:true});
+window.addEventListener("resize",()=>{if(openMenu)positionMenu(openMenu.m,openMenu.btn);});
+function handleMenuClick(ev,m){
+  const t=ev.target.closest("button");if(!t)return;
+  if(t.dataset.snooze){applyRule(m,"snooze",t.dataset.snooze);return;}
+  if(t.hasAttribute("data-snooze-pick")){const i=m.querySelector("input[type=date]"),v=i.value;if(!v){i.focus();i.showPicker?.();return;}applyRule(m,"snooze",v);return;}
+  if(t.hasAttribute("data-hide")){applyRule(m,"hide");return;}
+}
+async function applyRule(m,mode,until){
+  const id=m.dataset.id,key=m.dataset.key,btn=m._btn;closeMenus();
+  const el=btn&&btn.closest(".item,.fu,.ev");if(el)el.style.display="none"; // hide immediately
+  try{await setFilter({item_id:id,match_key:key,mode,until});await load();
+    toast(mode==="hide"?"Removed from the brief":"Snoozed until "+fmtDay(until),key);}
+  catch(e){if(el)el.style.display="";toast("Couldn't save: "+e.message,null);}
+}
+{
+  app.addEventListener("click",ev=>{
+    if(ev.target.closest("summary")&&ev.target.closest(".menu-wrap"))ev.preventDefault();
+    if(ev.target.matches('input[type=date]'))return;
+    const t=ev.target.closest("button");if(!t)return;
+    const b=B, doneKey="brief-todos-"+B.date, done=JSON.parse(localStorage.getItem(doneKey)||"{}");
+    if(t.hasAttribute("data-menu")){const was=openMenu&&openMenu.btn===t;closeMenus();if(!was)showMenu(t);return;}
+    if(t.dataset.toggleHidden){const l=document.getElementById("hidden-"+t.dataset.toggleHidden);const on=l.classList.toggle("show");t.textContent=t.textContent.replace(on?"Show":"Hide",on?"Hide":"Show");return;}
+    if(t.dataset.unhide){setFilter({mode:"clear",match_key:t.dataset.unhide}).then(load).then(()=>toast("Back in the brief",null)).catch(e=>toast("Couldn't unhide: "+e.message,null));return;}
+    if(t.classList.contains("checkbox")){const row=t.closest(".todo"),id=row.dataset.id;row.classList.toggle("done");const on=row.classList.contains("done");done[id]=on;t.setAttribute("aria-checked",on);localStorage.setItem(doneKey,JSON.stringify(done));
+      const c=document.getElementById("todo-count");if(c)c.textContent=b.todos.filter(x=>!done[x.item_id]).length;return;}
+    if(t.dataset.push){act({action:"push",item_id:t.dataset.push},document.getElementById("st-"+t.dataset.push),t);return;}
+    if(t.dataset.prep){act({action:"prep",item_id:t.dataset.prep},t.parentElement.querySelector(".status"),t);return;}
+    if(t.classList.contains("copy")){navigator.clipboard?.writeText(t.closest(".draft").querySelector("pre").textContent);t.lastChild.textContent="Copied";return;}
+    const fu=t.closest(".fu");if(!fu)return;
+    const st=fu.querySelector(".status"),cu=fu.querySelector(".custom");
+    if(t.dataset.dir){fu.querySelectorAll(".dir").forEach(x=>x.classList.remove("on"));t.classList.add("on");
+      if(t.dataset.dir==="custom"){cu.classList.add("show");cu.querySelector("textarea").focus();return;}
+      cu.classList.remove("show");act({action:"draft",item_id:fu.dataset.id,direction:t.dataset.dir,note:""},st,t);return;}
+    if(t.hasAttribute("data-send")){const note=cu.querySelector("textarea").value.trim();
+      if(!note){st.className="status err";st.textContent="Add a short note first.";return;}
+      act({action:"draft",item_id:fu.dataset.id,direction:"custom",note:note.slice(0,500)},st,t);}
+  });
+}
+if(window.BRIEF_NO_TOKEN){document.getElementById("app").innerHTML='<div class="loading">Open your brief from the link Morning Brief sent you.</div>';}else load().catch(()=>{document.getElementById("app").innerHTML='<div class="loading">Couldn\'t load the brief.</div>';});
+})();
+</script>
+</body>
+</html>
