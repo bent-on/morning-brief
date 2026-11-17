@@ -10,6 +10,7 @@
   try{ if(t) localStorage.setItem("mb_token",t); else t=localStorage.getItem("mb_token"); }catch(e){}
   if(t){ window.BRIEF_API='https://piralvczydwzouvovrrd.supabase.co/functions/v1/morning-brief/'+t; if(!m) try{history.replaceState(null,"",location.pathname+location.search+"#t="+t);}catch(e){} }
   else window.BRIEF_NO_TOKEN=true;
+  addEventListener("hashchange",function(){ if(/(?:^#|&)t=/.test(location.hash)&&location.hash.indexOf(t||"~")<0) location.reload(); });
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
