@@ -85,13 +85,15 @@ button{font:inherit;color:inherit;cursor:pointer;background:none}
 .list{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .item{padding:12px 14px;border-top:1px solid var(--border)}
 .item:first-child{border-top:0}
-.todo{display:flex;gap:12px;align-items:flex-start}
-.checkbox{width:16px;height:16px;margin-top:2px;flex:0 0 16px;border:1px solid #71717a;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;padding:0}
-.checkbox svg{width:11px;opacity:0}
-.todo.done .checkbox{background:var(--primary);border-color:var(--primary)}
-.todo.done .checkbox svg{opacity:1}
+.todo{display:flex;gap:8px;align-items:flex-start}
+.checkbox{width:32px;height:32px;flex:0 0 32px;margin:0;border:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;padding:0;color:var(--muted-foreground)}
+.checkbox .box{width:16px;height:16px;border:1px solid #71717a;border-radius:4px;display:flex;align-items:center;justify-content:center;background:transparent}
+.checkbox svg{width:11px;height:9px;opacity:0}
+.checkbox:hover{background:var(--accent)}
+.checkbox:hover .box{border-color:var(--foreground);background:var(--primary)}
+.checkbox:hover svg{opacity:1}
+.todo .checkbox{margin-top:-6px;margin-left:-8px}
 .todo .t{font-weight:500}
-.todo.done .t{text-decoration:line-through;color:var(--muted-foreground)}
 .meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
 /* follow-ups */
 .fu+.fu{margin-top:12px}
@@ -181,18 +183,29 @@ const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.toLocaleDateString("en-CA",{timeZone:"America/Vancouver"});
 const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d);};
 const fmtDay=s=>new Date(s+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-const menu=it=>it.match_key?`<div class="menu-wrap"><button class="icon-btn" data-menu aria-haspopup="menu" aria-expanded="false" aria-label="More options">${svg("dots","","width:16px;height:16px")}</button>
+const checkbox=()=>`<button type="button" class="checkbox" aria-label="Mark done" title="Mark done"><span class="box"><svg viewBox="0 0 14 10" aria-hidden="true"><path d="M1 5l4 4 8-8" stroke="#18181b" stroke-width="2" fill="none"/></svg></span></button>`;
+const menu=(it,opts={})=>it.match_key?`<div class="menu-wrap"><button type="button" class="icon-btn" data-menu aria-haspopup="menu" aria-expanded="false" aria-label="More options">${svg("dots","","width:16px;height:16px")}</button>
   <div class="menu" role="menu" data-id="${esc(it.item_id)}" data-key="${esc(it.match_key)}">
+   ${opts.done===false?"":`<button type="button" class="mi" data-done>Mark Done</button><div class="msep"></div>`}
    <div class="label">Snooze</div>
-   <button class="mi" data-snooze="${addDays(1)}">Tomorrow <small>${fmtDay(addDays(1))}</small></button>
-   <button class="mi" data-snooze="${addDays(7)}">Next Week <small>${fmtDay(addDays(7))}</small></button>
-   <div class="label">Pick a Date</div><div class="pick"><input type="date" min="${addDays(1)}" max="${addDays(365)}" aria-label="Pick a date"><button class="btn btn-outline btn-sm" data-snooze-pick style="height:30px">Snooze</button></div>
+   <button type="button" class="mi" data-snooze="${addDays(1)}">Tomorrow <small>${fmtDay(addDays(1))}</small></button>
+   <button type="button" class="mi" data-snooze="${addDays(7)}">Next Week <small>${fmtDay(addDays(7))}</small></button>
+   <div class="label">Pick a Date</div><div class="pick"><input type="date" min="${addDays(1)}" max="${addDays(365)}" aria-label="Pick a date"><button type="button" class="btn btn-outline btn-sm" data-snooze-pick style="height:30px">Snooze</button></div>
    <div class="msep"></div>
-   <button class="mi danger" data-hide>Not for the Brief</button></div></div>`:"";
-const hiddenBlock=(b,sec)=>{const f=(b.filtered||{})[sec]||[];if(!f.length)return"";
-  return `<div class="hidden-bar"><button class="btn btn-ghost" data-toggle-hidden="${sec}">${f.length} Hidden · Show</button></div>
-  <div class="hidden-list list" id="hidden-${sec}">${f.map(it=>`<div class="item"><span class="grow">${esc(it.title)}<br><span class="xs">${it._filter.mode==="snooze"?"Snoozed until "+esc(fmtDay(it._filter.until)):"Not for the Brief"}</span></span>
-  <button class="btn btn-outline btn-sm" data-unhide="${esc(it.match_key)}">Unhide</button></div>`).join("")}</div>`;};
+   <button type="button" class="mi danger" data-hide>Not for the Brief</button></div></div>`:"";
+const filterLabel=f=>f&&f.mode==="snooze"?"Snoozed until "+fmtDay(f.until):f&&f.mode==="done"?"Done":"Not for the Brief";
+const hiddenBlock=(b,sec)=>{
+  const all=(b.filtered||{})[sec]||[];
+  const done=all.filter(it=>(it._filter||{}).mode==="done");
+  const hid=all.filter(it=>(it._filter||{}).mode!=="done");
+  const list=(id,items,verb,label)=>{
+    if(!items.length)return"";
+    return `<div class="hidden-bar"><button type="button" class="btn btn-ghost" data-toggle-id="${id}">${items.length} ${label} · Show</button></div>
+    <div class="hidden-list list" id="${id}">${items.map(it=>`<div class="item"><span class="grow">${esc(it.title)}<br><span class="xs">${esc(filterLabel(it._filter||{}))}</span></span>
+    <button type="button" class="btn btn-outline btn-sm" data-unhide="${esc(it.match_key)}">${verb}</button></div>`).join("")}</div>`;
+  };
+  return list("hidden-"+sec,hid,"Unhide","Hidden")+list("done-"+sec,done,"Undo","Done");
+};
 
 async function act(body,statusEl,btn){
   statusEl.className="status";statusEl.textContent="Sending…";if(btn)btn.disabled=true;
@@ -211,7 +224,6 @@ function render(b){
   const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
   const gen=b.generated_at?new Date(b.generated_at):new Date();
   const timeStr=gen.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/Vancouver"})+" PT";
-  const doneKey="brief-todos-"+b.date, done=JSON.parse(localStorage.getItem(doneKey)||"{}");
   let h="";
   if(b.is_sample)h+=`<div class="sample">Example data · ${esc(b.sample_note||"sample content, first real brief tomorrow 7am")}</div>`;
   h+=`<header><h1 class="h1">The ${esc(b.weekday)} Brief</h1><p class="lead xs" style="margin-top:4px">${esc(dateStr)} · ${esc(timeStr)}</p></header>
@@ -219,30 +231,31 @@ function render(b){
      <figcaption class="caption"><b>${esc(b.hero.caption)}</b> · ${esc(b.hero.credit)}</figcaption></figure>
      <p style="margin:16px 0 0;font-size:15px;line-height:1.55">${esc(b.mood)}</p>`;
   const p=b.push;
-  if(p)h+=section("Push Your Work Forward","",`<div class="card card-pad">
-     <div class="row" style="margin-bottom:10px">${srcBadge(p.source||"clickup",p.source_url)}<span class="badge secondary">Today's One Thing</span></div>
+  if(p)h+=section("Push Your Work Forward","",`<div class="card card-pad push-card" data-id="${esc(p.item_id)}" data-key="${esc(p.match_key||"")}">
+     <div class="row" style="margin-bottom:10px">${srcBadge(p.source||"clickup",p.source_url)}<span class="badge secondary">Today's One Thing</span><span class="grow"></span>${p.match_key?checkbox():""}${menu(p)}</div>
      <h3 class="card-title">${esc(p.title)}</h3><p class="card-desc">${esc(p.body)}</p>
-     <div style="margin-top:14px"><button class="btn btn-primary" data-push="${esc(p.item_id)}">Let’s Do It ${svg("arrow","","width:15px;height:15px")}</button></div>
+     <div style="margin-top:14px"><button type="button" class="btn btn-primary" data-push="${esc(p.item_id)}">Let’s Do It ${svg("arrow","","width:15px;height:15px")}</button></div>
      <div class="status" id="st-${esc(p.item_id)}"></div></div>`);
-  if(b.todos?.length||b.filtered?.todos?.length){const left=b.todos.filter(t=>!done[t.item_id]).length;
-    h+=section("Top To-Dos",`<span id="todo-count">${left}</span> of ${b.todos.length} left`,`<div class="list">${b.todos.map(t=>`<div class="item todo ${done[t.item_id]?"done":""}" data-id="${esc(t.item_id)}">
-     <button class="checkbox" role="checkbox" aria-checked="${!!done[t.item_id]}" aria-label="Mark done"><svg viewBox="0 0 14 10"><path d="M1 5l4 4 8-8" stroke="#18181b" stroke-width="2" fill="none"/></svg></button>
+  else if(b.filtered?.push?.length)h+=section("Push Your Work Forward","",hiddenBlock(b,"push"));
+  if(b.todos?.length||b.filtered?.todos?.length){
+    h+=section("Top To-Dos",`${b.todos.length} left`,`<div class="list">${b.todos.map(t=>`<div class="item todo" data-id="${esc(t.item_id)}" data-key="${esc(t.match_key||"")}">
+     ${t.match_key?checkbox():""}
      <div class="grow"><div class="t">${esc(t.title)}</div><div class="meta">${srcBadge(t.source,t.source_url)}${t.due?`<span class="badge ${/overdue/i.test(t.due)?"warn":""}">${esc(t.due)}</span>`:""}</div></div>${menu(t)}</div>`).join("")}</div>${hiddenBlock(b,"todos")}`);}
-  if(b.followups?.length||b.filtered?.followups?.length)h+=section("Follow-Ups",`${b.followups.length} waiting on you`,b.followups.map(f=>`<div class="card card-pad fu" data-id="${esc(f.item_id)}">
-     <div class="fu-head"><span class="avatar">${esc(f.avatar?.initials||"?")}</span><div class="grow"><div class="name">${esc(f.from||"")}</div></div>${srcBadge(f.source,f.source_url)}${menu(f)}</div>
+  if(b.followups?.length||b.filtered?.followups?.length)h+=section("Follow-Ups",`${b.followups.length} waiting on you`,b.followups.map(f=>`<div class="card card-pad fu" data-id="${esc(f.item_id)}" data-key="${esc(f.match_key||"")}">
+     <div class="fu-head"><span class="avatar">${esc(f.avatar?.initials||"?")}</span><div class="grow"><div class="name">${esc(f.from||"")}</div></div>${srcBadge(f.source,f.source_url)}${f.match_key?checkbox():""}${menu(f)}</div>
      <h3 class="card-title">${esc(f.title)}</h3><p class="card-desc">${esc(f.body)}</p>
      <div class="btn-row" style="margin-top:14px">${DIRS.map(([k,l])=>`<button class="btn btn-outline btn-sm dir" data-dir="${k}">${l}</button>`).join("")}</div>
      <div class="custom"><textarea class="textarea" maxlength="500" placeholder="What should it say? e.g. yes, but only after 3pm"></textarea><button class="btn btn-primary btn-sm" data-send>Draft It</button></div>
      <div class="status"></div>
      <div class="draft ${f.draft?"":"empty"}"><div class="draft-head"><span>draft · ${esc(f.kind||"")}</span>${f.draft?`<button class="btn btn-ghost copy">${svg("copy","","width:13px;height:13px")}Copy</button>`:""}</div>
      <pre>${f.draft?esc(f.draft):"Pick a direction. The draft lands here and in chat; nothing is sent for you."}</pre></div></div>`).join("")+hiddenBlock(b,"followups"));
-  if(b.updates?.length||b.filtered?.updates?.length)h+=section("New Updates","",`<div class="list">${b.updates.map((u,i)=>`<div class="item">
-     <div class="row"><span class="muted xs" style="font-family:var(--mono)">${pad(i+1)}</span><span class="badge secondary">${esc(u.category)}</span>${srcBadge(u.source,u.source_url)}<span class="grow"></span>${menu(u)}</div>
+  if(b.updates?.length||b.filtered?.updates?.length)h+=section("New Updates","",`<div class="list">${b.updates.map((u,i)=>`<div class="item" data-id="${esc(u.item_id)}" data-key="${esc(u.match_key||"")}">
+     <div class="row">${u.match_key?checkbox():""}<span class="muted xs" style="font-family:var(--mono)">${pad(i+1)}</span><span class="badge secondary">${esc(u.category)}</span>${srcBadge(u.source,u.source_url)}<span class="grow"></span>${menu(u)}</div>
      <div class="up-title">${esc(u.title)}</div><div class="muted">${esc(u.body)}</div></div>`).join("")}</div>${hiddenBlock(b,"updates")}`);
   if(b.day?.length||b.filtered?.day?.length){let last=null,rows="";
     b.day.forEach((e,i)=>{const lab=e.day_label||"Today";
       if(lab!==last)rows+=`<div class="day-sep">${esc(lab==="Today"?"Today":"Tomorrow")}</div>`;last=lab;
-      rows+=`<details class="ev" ${i===0?"open":""}><summary><span class="time">${esc(e.time)}</span><span><div class="title">${esc(e.title)}</div><div class="muted xs">${esc(e.time)}${e.end?"–"+esc(e.end):""}</div></span><span class="row" style="gap:2px">${menu(e)}${svg("chev","chev")}</span></summary>
+      rows+=`<details class="ev" ${i===0?"open":""}><summary><span class="time">${esc(e.time)}</span><span><div class="title">${esc(e.title)}</div><div class="muted xs">${esc(e.time)}${e.end?"–"+esc(e.end):""}</div></span><span class="row" style="gap:2px">${menu(e,{done:false})}${svg("chev","chev")}</span></summary>
        <div class="body"><p>${esc(e.prep||"Nothing to prep.")}</p><button class="btn btn-outline btn-sm" data-prep="${esc(e.item_id)}">Prep Me</button><div class="status"></div></div></details>`;});
     h+=section("Your Day",`${b.day.length} events`,`${rows?`<div class="list tl">${rows}</div>`:""}${hiddenBlock(b,"day")}`);}
   if(b.sources_status?.length)h+=section("Sources","",`<div class="btn-row">${b.sources_status.map(s=>`<span class="badge ${s.status==="connected"?"ok":""}" title="${esc(s.note||"")}"><span class="dot"></span>${ic(s.source)}${esc(SRC[s.source]||s.source)}${s.status!=="connected"?` · ${esc(String(s.status).replace("_"," "))}`:""}</span>`).join("")}</div>`);
@@ -297,25 +310,27 @@ function handleMenuClick(ev,m){
   if(t.dataset.snooze){applyRule(m,"snooze",t.dataset.snooze);return;}
   if(t.hasAttribute("data-snooze-pick")){const i=m.querySelector("input[type=date]"),v=i.value;if(!v){i.focus();i.showPicker?.();return;}applyRule(m,"snooze",v);return;}
   if(t.hasAttribute("data-hide")){applyRule(m,"hide");return;}
+  if(t.hasAttribute("data-done")){applyRule(m,"done");return;}
+}
+async function dismiss(el,id,key,mode,until){
+  if(el)el.style.display="none";
+  try{await setFilter({item_id:id,match_key:key,mode,until});await load();
+    toast(mode==="done"?"Marked done":mode==="hide"?"Removed from the brief":"Snoozed until "+fmtDay(until),key);}
+  catch(e){if(el)el.style.display="";toast("Couldn't save: "+e.message,null);}
 }
 async function applyRule(m,mode,until){
   const id=m.dataset.id,key=m.dataset.key,btn=m._btn;closeMenus();
-  const el=btn&&btn.closest(".item,.fu,.ev");if(el)el.style.display="none"; // hide immediately
-  try{await setFilter({item_id:id,match_key:key,mode,until});await load();
-    toast(mode==="hide"?"Removed from the brief":"Snoozed until "+fmtDay(until),key);}
-  catch(e){if(el)el.style.display="";toast("Couldn't save: "+e.message,null);}
+  return dismiss(btn&&btn.closest(".item,.fu,.ev,.push-card"),id,key,mode,until);
 }
 {
   app.addEventListener("click",ev=>{
     if(ev.target.closest("summary")&&ev.target.closest(".menu-wrap"))ev.preventDefault();
     if(ev.target.matches('input[type=date]'))return;
     const t=ev.target.closest("button");if(!t)return;
-    const b=B, doneKey="brief-todos-"+B.date, done=JSON.parse(localStorage.getItem(doneKey)||"{}");
     if(t.hasAttribute("data-menu")){const was=openMenu&&openMenu.btn===t;closeMenus();if(!was)showMenu(t);return;}
-    if(t.dataset.toggleHidden){const l=document.getElementById("hidden-"+t.dataset.toggleHidden);const on=l.classList.toggle("show");t.textContent=t.textContent.replace(on?"Show":"Hide",on?"Hide":"Show");return;}
+    if(t.dataset.toggleId){const l=document.getElementById(t.dataset.toggleId);if(!l)return;const on=l.classList.toggle("show");t.textContent=t.textContent.replace(on?"Show":"Hide",on?"Hide":"Show");return;}
     if(t.dataset.unhide){setFilter({mode:"clear",match_key:t.dataset.unhide}).then(load).then(()=>toast("Back in the brief",null)).catch(e=>toast("Couldn't unhide: "+e.message,null));return;}
-    if(t.classList.contains("checkbox")){const row=t.closest(".todo"),id=row.dataset.id;row.classList.toggle("done");const on=row.classList.contains("done");done[id]=on;t.setAttribute("aria-checked",on);localStorage.setItem(doneKey,JSON.stringify(done));
-      const c=document.getElementById("todo-count");if(c)c.textContent=b.todos.filter(x=>!done[x.item_id]).length;return;}
+    if(t.classList.contains("checkbox")){const el=t.closest(".item,.fu,.push-card");if(!el||!el.dataset.key)return;dismiss(el,el.dataset.id,el.dataset.key,"done");return;}
     if(t.dataset.push){act({action:"push",item_id:t.dataset.push},document.getElementById("st-"+t.dataset.push),t);return;}
     if(t.dataset.prep){act({action:"prep",item_id:t.dataset.prep},t.parentElement.querySelector(".status"),t);return;}
     if(t.classList.contains("copy")){navigator.clipboard?.writeText(t.closest(".draft").querySelector("pre").textContent);t.lastChild.textContent="Copied";return;}
